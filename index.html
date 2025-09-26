@@ -1,0 +1,1233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Chat Application</title>
+    <style>
+        /* CSS will go here */
+        :root {
+            --primary-color: #4a6fa5;
+            --secondary-color: #166088;
+            --light-color: #f8f9fa;
+            --dark-color: #343a40;
+            --success-color: #28a745;
+            --warning-color: #ffc107;
+            --danger-color: #dc3545;
+            --gray-color: #6c757d;
+            --light-gray: #e9ecef;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f5f5;
+            color: var(--dark-color);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        /* Authentication Styles */
+        .auth-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+        }
+        
+        .auth-form {
+            background: white;
+            padding: 2rem;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .auth-form h2 {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            color: var(--dark-color);
+        }
+        
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 1rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: background-color 0.3s;
+        }
+        
+        .btn:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .btn-block {
+            width: 100%;
+        }
+        
+        .auth-switch {
+            text-align: center;
+            margin-top: 1rem;
+        }
+        
+        .auth-switch a {
+            color: var(--primary-color);
+            text-decoration: none;
+        }
+        
+        /* Chat Application Styles */
+        .chat-container {
+            display: none;
+            height: 100vh;
+        }
+        
+        .chat-header {
+            background-color: var(--primary-color);
+            color: white;
+            padding: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .chat-header h1 {
+            font-size: 1.5rem;
+        }
+        
+        .user-info {
+            display: flex;
+            align-items: center;
+        }
+        
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--light-color);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .logout-btn {
+            background: none;
+            border: none;
+            color: white;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+        
+        .chat-body {
+            display: flex;
+            height: calc(100vh - 70px);
+        }
+        
+        .sidebar {
+            width: 300px;
+            background-color: white;
+            border-right: 1px solid var(--light-gray);
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .sidebar-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .search-container {
+            position: relative;
+        }
+        
+        .search-container input {
+            width: 100%;
+            padding: 0.5rem 2.5rem 0.5rem 1rem;
+            border: 1px solid var(--light-gray);
+            border-radius: 20px;
+        }
+        
+        .search-icon {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray-color);
+        }
+        
+        .contacts-list {
+            flex: 1;
+            overflow-y: auto;
+        }
+        
+        .contact {
+            padding: 1rem;
+            border-bottom: 1px solid var(--light-gray);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background-color 0.2s;
+        }
+        
+        .contact:hover {
+            background-color: var(--light-gray);
+        }
+        
+        .contact.active {
+            background-color: var(--light-color);
+            border-left: 3px solid var(--primary-color);
+        }
+        
+        .contact-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: var(--light-gray);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        
+        .contact-info {
+            flex: 1;
+        }
+        
+        .contact-name {
+            font-weight: 500;
+        }
+        
+        .contact-status {
+            font-size: 0.8rem;
+            color: var(--gray-color);
+        }
+        
+        .online {
+            color: var(--success-color);
+        }
+        
+        .chat-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .chat-header-info {
+            padding: 1rem;
+            border-bottom: 1px solid var(--light-gray);
+            background-color: white;
+        }
+        
+        .chat-messages {
+            flex: 1;
+            padding: 1rem;
+            overflow-y: auto;
+            background-color: #f0f2f5;
+        }
+        
+        .message {
+            margin-bottom: 1rem;
+            display: flex;
+        }
+        
+        .message.sent {
+            justify-content: flex-end;
+        }
+        
+        .message.received {
+            justify-content: flex-start;
+        }
+        
+        .message-bubble {
+            max-width: 70%;
+            padding: 0.75rem 1rem;
+            border-radius: 18px;
+            position: relative;
+        }
+        
+        .message.sent .message-bubble {
+            background-color: var(--primary-color);
+            color: white;
+            border-bottom-right-radius: 5px;
+        }
+        
+        .message.received .message-bubble {
+            background-color: white;
+            color: var(--dark-color);
+            border-bottom-left-radius: 5px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+        
+        .message-time {
+            font-size: 0.7rem;
+            margin-top: 5px;
+            opacity: 0.7;
+        }
+        
+        .message-status {
+            font-size: 0.7rem;
+            margin-top: 5px;
+            display: flex;
+            align-items: center;
+        }
+        
+        .typing-indicator {
+            padding: 0.5rem 1rem;
+            font-style: italic;
+            color: var(--gray-color);
+            font-size: 0.9rem;
+        }
+        
+        .chat-input-area {
+            padding: 1rem;
+            background-color: white;
+            border-top: 1px solid var(--light-gray);
+            display: flex;
+            align-items: center;
+        }
+        
+        .message-input {
+            flex: 1;
+            padding: 0.75rem;
+            border: 1px solid var(--light-gray);
+            border-radius: 20px;
+            margin-right: 10px;
+            resize: none;
+            height: 40px;
+            max-height: 120px;
+        }
+        
+        .send-btn {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        /* Group creation modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .modal-content {
+            background-color: white;
+            padding: 2rem;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 500px;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+        
+        .group-members {
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 1rem 0;
+            border: 1px solid var(--light-gray);
+            border-radius: 5px;
+            padding: 0.5rem;
+        }
+        
+        .member-item {
+            display: flex;
+            align-items: center;
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--light-gray);
+        }
+        
+        .member-item:last-child {
+            border-bottom: none;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                position: absolute;
+                z-index: 10;
+                height: 100%;
+                display: none;
+            }
+            
+            .sidebar.active {
+                display: flex;
+            }
+            
+            .menu-toggle {
+                display: block;
+            }
+            
+            .chat-area {
+                width: 100%;
+            }
+        }
+        
+        .menu-toggle {
+            display: none;
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            margin-right: 10px;
+        }
+        
+        /* Notification styles */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 1rem;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1001;
+            display: flex;
+            align-items: center;
+            max-width: 300px;
+            display: none;
+        }
+        
+        .notification.success {
+            border-left: 4px solid var(--success-color);
+        }
+        
+        .notification.error {
+            border-left: 4px solid var(--danger-color);
+        }
+        
+        .notification-icon {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Authentication Section -->
+    <div id="auth-container" class="auth-container">
+        <div class="auth-form" id="login-form">
+            <h2>Login to Chat</h2>
+            <form id="loginForm">
+                <div class="form-group">
+                    <label for="login-email">Email</label>
+                    <input type="email" id="login-email" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="login-password">Password</label>
+                    <input type="password" id="login-password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-block">Login</button>
+            </form>
+            <div class="auth-switch">
+                <p>Don't have an account? <a href="#" id="show-signup">Sign up</a></p>
+            </div>
+        </div>
+        
+        <div class="auth-form" id="signup-form" style="display: none;">
+            <h2>Create Account</h2>
+            <form id="signupForm">
+                <div class="form-group">
+                    <label for="signup-name">Full Name</label>
+                    <input type="text" id="signup-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-email">Email</label>
+                    <input type="email" id="signup-email" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-password">Password</label>
+                    <input type="password" id="signup-password" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label for="signup-confirm">Confirm Password</label>
+                    <input type="password" id="signup-confirm" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-block">Sign Up</button>
+            </form>
+            <div class="auth-switch">
+                <p>Already have an account? <a href="#" id="show-login">Login</a></p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Chat Application Section -->
+    <div id="chat-container" class="chat-container">
+        <header class="chat-header">
+            <button class="menu-toggle">☰</button>
+            <h1>Real-Time Chat</h1>
+            <div class="user-info">
+                <div class="user-avatar" id="user-avatar">U</div>
+                <span id="username">User</span>
+                <button class="logout-btn" id="logout-btn">Logout</button>
+            </div>
+        </header>
+        
+        <div class="chat-body">
+            <aside class="sidebar" id="sidebar">
+                <div class="sidebar-header">
+                    <div class="search-container">
+                        <input type="text" placeholder="Search contacts...">
+                        <span class="search-icon">🔍</span>
+                    </div>
+                </div>
+                
+                <div class="contacts-list" id="contacts-list">
+                    <!-- Contacts will be populated by JavaScript -->
+                </div>
+                
+                <div class="sidebar-footer" style="padding: 1rem;">
+                    <button class="btn btn-block" id="create-group-btn">Create Group</button>
+                </div>
+            </aside>
+            
+            <main class="chat-area">
+                <div class="chat-header-info" id="chat-header-info">
+                    <h3>Select a contact to start chatting</h3>
+                </div>
+                
+                <div class="chat-messages" id="chat-messages">
+                    <!-- Messages will be populated by JavaScript -->
+                </div>
+                
+                <div class="typing-indicator" id="typing-indicator" style="display: none;"></div>
+                
+                <div class="chat-input-area" id="chat-input-area" style="display: none;">
+                    <textarea class="message-input" id="message-input" placeholder="Type a message..."></textarea>
+                    <button class="send-btn" id="send-btn">➤</button>
+                </div>
+            </main>
+        </div>
+    </div>
+    
+    <!-- Create Group Modal -->
+    <div class="modal" id="create-group-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Create New Group</h3>
+                <button class="close-modal" id="close-group-modal">×</button>
+            </div>
+            <form id="create-group-form">
+                <div class="form-group">
+                    <label for="group-name">Group Name</label>
+                    <input type="text" id="group-name" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label>Select Members</label>
+                    <div class="group-members" id="group-members-list">
+                        <!-- Members will be populated by JavaScript -->
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-block">Create Group</button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Notification -->
+    <div class="notification" id="notification">
+        <span class="notification-icon" id="notification-icon">!</span>
+        <span id="notification-message">This is a notification</span>
+    </div>
+
+    <script>
+        // Application State
+        const appState = {
+            currentUser: null,
+            contacts: [],
+            currentChat: null,
+            socket: null,
+            isGroupChat: false
+        };
+
+        // DOM Elements
+        const authContainer = document.getElementById('auth-container');
+        const chatContainer = document.getElementById('chat-container');
+        const loginForm = document.getElementById('login-form');
+        const signupForm = document.getElementById('signup-form');
+        const loginFormElement = document.getElementById('loginForm');
+        const signupFormElement = document.getElementById('signupForm');
+        const showSignupLink = document.getElementById('show-signup');
+        const showLoginLink = document.getElementById('show-login');
+        const logoutBtn = document.getElementById('logout-btn');
+        const contactsList = document.getElementById('contacts-list');
+        const chatMessages = document.getElementById('chat-messages');
+        const messageInput = document.getElementById('message-input');
+        const sendBtn = document.getElementById('send-btn');
+        const chatHeaderInfo = document.getElementById('chat-header-info');
+        const chatInputArea = document.getElementById('chat-input-area');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const userAvatar = document.getElementById('user-avatar');
+        const usernameElement = document.getElementById('username');
+        const createGroupBtn = document.getElementById('create-group-btn');
+        const createGroupModal = document.getElementById('create-group-modal');
+        const closeGroupModal = document.getElementById('close-group-modal');
+        const createGroupForm = document.getElementById('create-group-form');
+        const groupMembersList = document.getElementById('group-members-list');
+        const notification = document.getElementById('notification');
+        const notificationMessage = document.getElementById('notification-message');
+        const notificationIcon = document.getElementById('notification-icon');
+        const sidebar = document.getElementById('sidebar');
+        const menuToggle = document.querySelector('.menu-toggle');
+        
+        // Event Listeners
+        document.addEventListener('DOMContentLoaded', initApp);
+        showSignupLink.addEventListener('click', showSignupForm);
+        showLoginLink.addEventListener('click', showLoginForm);
+        loginFormElement.addEventListener('submit', handleLogin);
+        signupFormElement.addEventListener('submit', handleSignup);
+        logoutBtn.addEventListener('click', handleLogout);
+        sendBtn.addEventListener('click', sendMessage);
+        messageInput.addEventListener('keypress', handleTyping);
+        messageInput.addEventListener('input', adjustTextareaHeight);
+        createGroupBtn.addEventListener('click', showCreateGroupModal);
+        closeGroupModal.addEventListener('click', hideCreateGroupModal);
+        createGroupForm.addEventListener('submit', handleCreateGroup);
+        menuToggle.addEventListener('click', toggleSidebar);
+
+        // Initialize the application
+        function initApp() {
+            // Check if user is already logged in (from localStorage)
+            const savedUser = localStorage.getItem('chatUser');
+            if (savedUser) {
+                appState.currentUser = JSON.parse(savedUser);
+                showChatInterface();
+                initializeSocket();
+                loadContacts();
+            } else {
+                showAuthInterface();
+            }
+        }
+
+        // Show authentication interface
+        function showAuthInterface() {
+            authContainer.style.display = 'flex';
+            chatContainer.style.display = 'none';
+        }
+
+        // Show chat interface
+        function showChatInterface() {
+            authContainer.style.display = 'none';
+            chatContainer.style.display = 'flex';
+            userAvatar.textContent = appState.currentUser.name.charAt(0).toUpperCase();
+            usernameElement.textContent = appState.currentUser.name;
+        }
+
+        // Show signup form
+        function showSignupForm(e) {
+            e.preventDefault();
+            loginForm.style.display = 'none';
+            signupForm.style.display = 'block';
+        }
+
+        // Show login form
+        function showLoginForm(e) {
+            e.preventDefault();
+            signupForm.style.display = 'none';
+            loginForm.style.display = 'block';
+        }
+
+        // Handle login
+        function handleLogin(e) {
+            e.preventDefault();
+            const email = document.getElementById('login-email').value;
+            const password = document.getElementById('login-password').value;
+            
+            // In a real app, this would be an API call
+            // For demo purposes, we'll use mock authentication
+            const users = JSON.parse(localStorage.getItem('chatUsers') || '[]');
+            const user = users.find(u => u.email === email && u.password === password);
+            
+            if (user) {
+                appState.currentUser = user;
+                localStorage.setItem('chatUser', JSON.stringify(user));
+                showChatInterface();
+                initializeSocket();
+                loadContacts();
+                showNotification('Login successful!', 'success');
+            } else {
+                showNotification('Invalid email or password', 'error');
+            }
+        }
+
+        // Handle signup
+        function handleSignup(e) {
+            e.preventDefault();
+            const name = document.getElementById('signup-name').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('signup-confirm').value;
+            
+            if (password !== confirmPassword) {
+                showNotification('Passwords do not match', 'error');
+                return;
+            }
+            
+            // In a real app, this would be an API call
+            const users = JSON.parse(localStorage.getItem('chatUsers') || '[]');
+            
+            // Check if user already exists
+            if (users.find(u => u.email === email)) {
+                showNotification('User with this email already exists', 'error');
+                return;
+            }
+            
+            const newUser = {
+                id: generateId(),
+                name,
+                email,
+                password, // In a real app, this would be hashed
+                isOnline: true
+            };
+            
+            users.push(newUser);
+            localStorage.setItem('chatUsers', JSON.stringify(users));
+            
+            appState.currentUser = newUser;
+            localStorage.setItem('chatUser', JSON.stringify(newUser));
+            showChatInterface();
+            initializeSocket();
+            loadContacts();
+            showNotification('Account created successfully!', 'success');
+            
+            // Switch to login form for next time
+            showLoginForm(e);
+        }
+
+        // Handle logout
+        function handleLogout() {
+            if (appState.socket) {
+                appState.socket.emit('user-offline', appState.currentUser.id);
+                appState.socket.disconnect();
+            }
+            
+            localStorage.removeItem('chatUser');
+            appState.currentUser = null;
+            showAuthInterface();
+        }
+
+        // Initialize Socket.io connection
+        function initializeSocket() {
+            // In a real app, this would connect to your Node.js server
+            // For this demo, we'll simulate socket behavior with custom events
+            
+            // Mock socket object
+            appState.socket = {
+                emit: function(event, data) {
+                    console.log(`Socket emit: ${event}`, data);
+                    // Simulate server response for certain events
+                    if (event === 'send-message') {
+                        setTimeout(() => {
+                            // Simulate message delivery
+                            handleIncomingMessage({
+                                id: generateId(),
+                                senderId: data.senderId,
+                                receiverId: data.receiverId,
+                                content: data.content,
+                                timestamp: new Date().toISOString(),
+                                status: 'delivered'
+                            });
+                        }, 100);
+                    } else if (event === 'typing-start') {
+                        // Simulate typing indicator
+                        if (data.receiverId === appState.currentChat?.id) {
+                            showTypingIndicator(data.senderName);
+                        }
+                    } else if (event === 'typing-stop') {
+                        hideTypingIndicator();
+                    } else if (event === 'user-online') {
+                        updateUserStatus(data.userId, true);
+                    } else if (event === 'user-offline') {
+                        updateUserStatus(data.userId, false);
+                    }
+                },
+                on: function(event, callback) {
+                    // Store callbacks for simulated events
+                    if (!appState.socket._callbacks) appState.socket._callbacks = {};
+                    if (!appState.socket._callbacks[event]) appState.socket._callbacks[event] = [];
+                    appState.socket._callbacks[event].push(callback);
+                },
+                disconnect: function() {
+                    console.log('Socket disconnected');
+                }
+            };
+            
+            // Simulate other users being online
+            setTimeout(() => {
+                const users = JSON.parse(localStorage.getItem('chatUsers') || '[]');
+                const otherUsers = users.filter(u => u.id !== appState.currentUser.id);
+                otherUsers.forEach(user => {
+                    updateUserStatus(user.id, Math.random() > 0.3); // Random online status
+                });
+            }, 1000);
+        }
+
+        // Load contacts (users and groups)
+        function loadContacts() {
+            // In a real app, this would be an API call
+            const users = JSON.parse(localStorage.getItem('chatUsers') || '[]');
+            const groups = JSON.parse(localStorage.getItem('chatGroups') || '[]');
+            
+            // Filter out current user
+            const otherUsers = users.filter(u => u.id !== appState.currentUser.id);
+            
+            // Combine users and groups
+            appState.contacts = [...otherUsers, ...groups];
+            
+            renderContacts();
+        }
+
+        // Render contacts list
+        function renderContacts() {
+            contactsList.innerHTML = '';
+            
+            appState.contacts.forEach(contact => {
+                const contactElement = document.createElement('div');
+                contactElement.className = 'contact';
+                contactElement.dataset.id = contact.id;
+                contactElement.dataset.type = contact.members ? 'group' : 'user';
+                
+                contactElement.innerHTML = `
+                    <div class="contact-avatar">${contact.name.charAt(0).toUpperCase()}</div>
+                    <div class="contact-info">
+                        <div class="contact-name">${contact.name}</div>
+                        <div class="contact-status ${contact.isOnline ? 'online' : ''}">
+                            ${contact.members ? `${contact.members.length} members` : (contact.isOnline ? 'Online' : 'Offline')}
+                        </div>
+                    </div>
+                `;
+                
+                contactElement.addEventListener('click', () => selectContact(contact));
+                contactsList.appendChild(contactElement);
+            });
+        }
+
+        // Select a contact to chat with
+        function selectContact(contact) {
+            appState.currentChat = contact;
+            appState.isGroupChat = !!contact.members;
+            
+            // Update UI
+            document.querySelectorAll('.contact').forEach(c => c.classList.remove('active'));
+            document.querySelector(`.contact[data-id="${contact.id}"]`).classList.add('active');
+            
+            chatHeaderInfo.innerHTML = `
+                <h3>${contact.name}</h3>
+                <div class="contact-status ${contact.isOnline && !contact.members ? 'online' : ''}">
+                    ${contact.members ? `Group • ${contact.members.length} members` : (contact.isOnline ? 'Online' : 'Offline')}
+                </div>
+            `;
+            
+            chatInputArea.style.display = 'flex';
+            loadChatHistory();
+            
+            // Hide sidebar on mobile
+            if (window.innerWidth <= 768) {
+                sidebar.classList.remove('active');
+            }
+        }
+
+        // Load chat history for selected contact
+        function loadChatHistory() {
+            chatMessages.innerHTML = '';
+            
+            // In a real app, this would be an API call
+            const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
+            const chatMessagesFiltered = messages.filter(msg => 
+                (msg.senderId === appState.currentUser.id && msg.receiverId === appState.currentChat.id) ||
+                (msg.senderId === appState.currentChat.id && msg.receiverId === appState.currentUser.id) ||
+                (appState.isGroupChat && msg.groupId === appState.currentChat.id)
+            );
+            
+            chatMessagesFiltered.forEach(message => {
+                displayMessage(message);
+            });
+            
+            // Scroll to bottom
+            scrollToBottom();
+        }
+
+        // Display a message in the chat
+        function displayMessage(message) {
+            const messageElement = document.createElement('div');
+            const isSent = message.senderId === appState.currentUser.id;
+            
+            messageElement.className = `message ${isSent ? 'sent' : 'received'}`;
+            
+            const time = new Date(message.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            messageElement.innerHTML = `
+                <div class="message-bubble">
+                    <div class="message-content">${message.content}</div>
+                    <div class="message-time">${time}</div>
+                    ${isSent ? `<div class="message-status">${getStatusIcon(message.status)}</div>` : ''}
+                </div>
+            `;
+            
+            chatMessages.appendChild(messageElement);
+        }
+
+        // Send a message
+        function sendMessage() {
+            const content = messageInput.value.trim();
+            if (!content || !appState.currentChat) return;
+            
+            const message = {
+                id: generateId(),
+                senderId: appState.currentUser.id,
+                senderName: appState.currentUser.name,
+                receiverId: appState.isGroupChat ? null : appState.currentChat.id,
+                groupId: appState.isGroupChat ? appState.currentChat.id : null,
+                content,
+                timestamp: new Date().toISOString(),
+                status: 'sent'
+            };
+            
+            // Display message immediately
+            displayMessage(message);
+            
+            // Save to local storage (in a real app, this would be sent to the server)
+            const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
+            messages.push(message);
+            localStorage.setItem('chatMessages', JSON.stringify(messages));
+            
+            // Simulate sending via socket
+            if (appState.socket) {
+                appState.socket.emit('send-message', message);
+            }
+            
+            // Clear input and reset height
+            messageInput.value = '';
+            messageInput.style.height = '40px';
+            
+            // Scroll to bottom
+            scrollToBottom();
+            
+            // Stop typing indicator
+            hideTypingIndicator();
+        }
+
+        // Handle incoming message (simulated)
+        function handleIncomingMessage(message) {
+            // Update message status if it's our message
+            if (message.senderId === appState.currentUser.id) {
+                updateMessageStatus(message.id, message.status);
+            } 
+            // Display message if it's for the current chat
+            else if (
+                (!appState.isGroupChat && message.senderId === appState.currentChat.id) ||
+                (appState.isGroupChat && message.groupId === appState.currentChat.id)
+            ) {
+                displayMessage(message);
+                scrollToBottom();
+                
+                // Save to local storage
+                const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
+                const existingIndex = messages.findIndex(m => m.id === message.id);
+                if (existingIndex === -1) {
+                    messages.push(message);
+                    localStorage.setItem('chatMessages', JSON.stringify(messages));
+                } else {
+                    messages[existingIndex] = message;
+                    localStorage.setItem('chatMessages', JSON.stringify(messages));
+                }
+            }
+        }
+
+        // Handle typing indicator
+        function handleTyping(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                sendMessage();
+                return;
+            }
+            
+            if (appState.socket && appState.currentChat) {
+                appState.socket.emit('typing-start', {
+                    senderId: appState.currentUser.id,
+                    senderName: appState.currentUser.name,
+                    receiverId: appState.currentChat.id
+                });
+                
+                // Clear previous timeout
+                if (window.typingTimeout) {
+                    clearTimeout(window.typingTimeout);
+                }
+                
+                // Set timeout to stop typing indicator
+                window.typingTimeout = setTimeout(() => {
+                    if (appState.socket) {
+                        appState.socket.emit('typing-stop', {
+                            senderId: appState.currentUser.id,
+                            receiverId: appState.currentChat.id
+                        });
+                    }
+                }, 1000);
+            }
+        }
+
+        // Show typing indicator
+        function showTypingIndicator(userName) {
+            typingIndicator.textContent = `${userName} is typing...`;
+            typingIndicator.style.display = 'block';
+            scrollToBottom();
+        }
+
+        // Hide typing indicator
+        function hideTypingIndicator() {
+            typingIndicator.style.display = 'none';
+        }
+
+        // Update message status
+        function updateMessageStatus(messageId, status) {
+            const messageElement = chatMessages.querySelector(`[data-message-id="${messageId}"]`);
+            if (messageElement) {
+                const statusElement = messageElement.querySelector('.message-status');
+                if (statusElement) {
+                    statusElement.innerHTML = getStatusIcon(status);
+                }
+            }
+            
+            // Update in local storage
+            const messages = JSON.parse(localStorage.getItem('chatMessages') || '[]');
+            const messageIndex = messages.findIndex(m => m.id === messageId);
+            if (messageIndex !== -1) {
+                messages[messageIndex].status = status;
+                localStorage.setItem('chatMessages', JSON.stringify(messages));
+            }
+        }
+
+        // Update user status
+        function updateUserStatus(userId, isOnline) {
+            const contactElement = contactsList.querySelector(`.contact[data-id="${userId}"]`);
+            if (contactElement) {
+                const statusElement = contactElement.querySelector('.contact-status');
+                if (statusElement) {
+                    statusElement.textContent = isOnline ? 'Online' : 'Offline';
+                    statusElement.classList.toggle('online', isOnline);
+                }
+            }
+            
+            // Update in app state
+            const contactIndex = appState.contacts.findIndex(c => c.id === userId);
+            if (contactIndex !== -1 && !appState.contacts[contactIndex].members) {
+                appState.contacts[contactIndex].isOnline = isOnline;
+            }
+        }
+
+        // Show create group modal
+        function showCreateGroupModal() {
+            // Load users for group selection
+            const users = JSON.parse(localStorage.getItem('chatUsers') || '[]');
+            const otherUsers = users.filter(u => u.id !== appState.currentUser.id);
+            
+            groupMembersList.innerHTML = '';
+            otherUsers.forEach(user => {
+                const memberItem = document.createElement('div');
+                memberItem.className = 'member-item';
+                memberItem.innerHTML = `
+                    <input type="checkbox" id="user-${user.id}" value="${user.id}">
+                    <label for="user-${user.id}" style="margin-left: 10px;">${user.name}</label>
+                `;
+                groupMembersList.appendChild(memberItem);
+            });
+            
+            createGroupModal.style.display = 'flex';
+        }
+
+        // Hide create group modal
+        function hideCreateGroupModal() {
+            createGroupModal.style.display = 'none';
+        }
+        
+        // Handle create group form submission
+        function handleCreateGroup(e) {
+            e.preventDefault();
+            const groupName = document.getElementById('group-name').value;
+            const selectedMembers = Array.from(groupMembersList.querySelectorAll('input:checked'))
+                .map(input => input.value);
+            
+            if (selectedMembers.length === 0) {
+                showNotification('Please select at least one member', 'error');
+                return;
+            }
+            
+            const newGroup = {
+                id: generateId(),
+                name: groupName,
+                members: [appState.currentUser.id, ...selectedMembers],
+                createdBy: appState.currentUser.id,
+                createdAt: new Date().toISOString()
+            };
+            
+            // Save group to local storage
+            const groups = JSON.parse(localStorage.getItem('chatGroups') || '[]');
+            groups.push(newGroup);
+            localStorage.setItem('chatGroups', JSON.stringify(groups));
+            
+            // Add to contacts and select it
+            appState.contacts.push(newGroup);
+            renderContacts();
+            selectContact(newGroup);
+            
+            hideCreateGroupModal();
+            showNotification('Group created successfully!', 'success');
+        }
+
+        // Toggle sidebar on mobile
+        function toggleSidebar() {
+            sidebar.classList.toggle('active');
+        }
+
+        // Adjust textarea height based on content
+        function adjustTextareaHeight() {
+            messageInput.style.height = 'auto';
+            messageInput.style.height = Math.min(messageInput.scrollHeight, 120) + 'px';
+        }
+
+        // Scroll chat to bottom
+        function scrollToBottom() {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }
+
+        // Show notification
+        function showNotification(message, type) {
+            notificationMessage.textContent = message;
+            notification.className = `notification ${type}`;
+            notificationIcon.textContent = type === 'success' ? '✓' : '!';
+            notification.style.display = 'flex';
+            
+            setTimeout(() => {
+                notification.style.display = 'none';
+            }, 3000);
+        }
+
+        // Generate unique ID
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2);
+        }
+
+        // Get status icon for message
+        function getStatusIcon(status) {
+            switch (status) {
+                case 'sent': return '✓';
+                case 'delivered': return '✓✓';
+                case 'seen': return '✓✓ <span style="color: #4a6fa5;">Seen</span>';
+                default: return '...';
+            }
+        }
+
+        // Initialize with some demo data if none exists
+        if (!localStorage.getItem('chatUsers')) {
+            const demoUsers = [
+                { id: 'user1', name: 'Alex Cyril', email: 'alex@example.com', password: '123', isOnline: true },
+                { id: 'user2', name: 'Sujith Kumar', email: 'sujith@example.com', password: '123', isOnline: false },
+                { id: 'user3', name: 'Harish Kumar', email: 'harish@example.com', password: '123', isOnline: true }
+            ];
+            localStorage.setItem('chatUsers', JSON.stringify(demoUsers));
+            
+            const demoGroups = [
+                { 
+                    id: 'group1', 
+                    name: 'Project Team', 
+                    members: ['user1', 'user2', 'user3'], 
+                    createdBy: 'user1', 
+                    createdAt: new Date().toISOString() 
+                }
+            ];
+            localStorage.setItem('chatGroups', JSON.stringify(demoGroups));
+            
+            const demoMessages = [
+                {
+                    id: 'msg1',
+                    senderId: 'user1',
+                    senderName: 'Alex Cyril',
+                    receiverId: 'user2',
+                    content: 'Hey Sujith, how is the project going?',
+                    timestamp: new Date(Date.now() - 3600000).toISOString(),
+                    status: 'delivered'
+                },
+                {
+                    id: 'msg2',
+                    senderId: 'user2',
+                    senderName: 'Sujith Kumar',
+                    receiverId: 'user1',
+                    content: 'Going well! I just finished the authentication module.',
+                    timestamp: new Date(Date.now() - 3500000).toISOString(),
+                    status: 'delivered'
+                },
+                {
+                    id: 'msg3',
+                    senderId: 'user1',
+                    senderName: 'Alex Cyril',
+                    groupId: 'group1',
+                    content: 'Team, let\'s meet tomorrow to discuss the next phase.',
+                    timestamp: new Date(Date.now() - 3000000).toISOString(),
+                    status: 'delivered'
+                }
+            ];
+            localStorage.setItem('chatMessages', JSON.stringify(demoMessages));
+        }
+    </script>
+</body>
+</html>
